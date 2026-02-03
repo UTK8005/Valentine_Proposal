@@ -671,6 +671,142 @@
             z-index: 999;
         }
 
+        /* Wait Popup */
+        .wait-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(136, 14, 79, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            padding: 20px;
+        }
+
+        .wait-popup.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .wait-popup-content {
+            background: linear-gradient(135deg, #fff 0%, #fce4ec 100%);
+            padding: 40px 30px;
+            border-radius: 25px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            transform: translateY(30px) scale(0.9);
+            transition: transform 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wait-popup.show .wait-popup-content {
+            transform: translateY(0) scale(1);
+            animation: popupBounce 0.5s ease;
+        }
+
+        @keyframes popupBounce {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .wait-popup-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(233, 30, 99, 0.1) 0%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        .wait-popup-heart {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            position: relative;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        .wait-popup-heart svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--deep-rose);
+            filter: drop-shadow(0 5px 15px rgba(233, 30, 99, 0.4));
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.15); }
+        }
+
+        .wait-popup-content h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--dark-rose);
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .wait-popup-content p {
+            font-family: 'Lato', sans-serif;
+            font-size: 1rem;
+            color: var(--rose-gold);
+            line-height: 1.6;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .wait-popup-date {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            color: var(--deep-rose);
+            font-weight: 600;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.2);
+            position: relative;
+        }
+
+        .close-wait-popup {
+            margin-top: 25px;
+            background: linear-gradient(135deg, var(--deep-rose), var(--rose-gold));
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 30px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 5px 20px rgba(233, 30, 99, 0.3);
+        }
+
+        .close-wait-popup:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
+        }
+
         /* Footer */
         footer {
             text-align: center;
@@ -726,6 +862,22 @@
     <!-- Confetti Canvas -->
     <canvas id="confetti-canvas"></canvas>
 
+    <!-- Wait Popup -->
+    <div class="wait-popup" id="wait-popup">
+        <div class="wait-popup-content">
+            <div class="wait-popup-heart">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </div>
+            <h3>I know you're excited!</h3>
+            <p>But this special surprise is waiting just for you...</p>
+            <div class="wait-popup-date">February 14th</div>
+            <br>
+            <button class="close-wait-popup" id="close-wait-popup">I'll wait with love</button>
+        </div>
+    </div>
+
     <!-- Music Toggle -->
     <button class="music-toggle" id="music-toggle" aria-label="Toggle music">
         <svg viewBox="0 0 24 24" class="music-on">
@@ -744,7 +896,7 @@
         <section class="hero">
             <h1>To my forever Valentine...</h1>
             <div class="photo-frame">
-                <img src="valentines-invitation/photos/Memory 1 (1).jpg" alt="Our Photo">
+                <img src="photos/Memory 1 (1).jpg" alt="Our Photo">
             </div>
         </section>
 
@@ -981,12 +1133,43 @@
         updateCountdown();
         setInterval(updateCountdown, 1000);
 
+        // ===== Date Check Function =====
+        function isValentinesDay() {
+            const now = new Date();
+            const month = now.getMonth(); // 0-indexed, so January = 0, February = 1
+            const day = now.getDate();
+            // Returns true if it's February 14th or later in February, or any time after
+            return (month === 1 && day >= 14) || month > 1;
+        }
+
+        // ===== Wait Popup =====
+        const waitPopup = document.getElementById('wait-popup');
+        const closeWaitPopup = document.getElementById('close-wait-popup');
+
+        function showWaitPopup() {
+            waitPopup.classList.add('show');
+        }
+
+        closeWaitPopup.addEventListener('click', () => {
+            waitPopup.classList.remove('show');
+        });
+
+        waitPopup.addEventListener('click', (e) => {
+            if (e.target === waitPopup) {
+                waitPopup.classList.remove('show');
+            }
+        });
+
         // ===== Love Letter =====
         const envelope = document.getElementById('envelope');
         const letterModal = document.getElementById('letter-modal');
         const closeLetter = document.getElementById('close-letter');
 
         envelope.addEventListener('click', () => {
+            if (!isValentinesDay()) {
+                showWaitPopup();
+                return;
+            }
             envelope.classList.add('open');
             setTimeout(() => {
                 letterModal.classList.add('show');
@@ -1147,6 +1330,11 @@
         const successMessage = document.getElementById('success-message');
 
         btnYes.addEventListener('click', () => {
+            if (!isValentinesDay()) {
+                showWaitPopup();
+                return;
+            }
+
             createConfetti();
             animateConfetti();
 
